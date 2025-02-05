@@ -119,9 +119,9 @@ const getTipoCambio = (req, res) => {
   };
 
   if (exchangeRates[type]) {
-    res.json(exchangeRates[type]);
+    res.status(200).json(exchangeRates[type]); // Respuesta exitosa con status 200
   } else {
-    res.status(400).json({ error: "Moneda no soportada" });
+    res.status(400).json({ error: "Moneda no soportada" }); //Error con status 400
   }
 };
 
