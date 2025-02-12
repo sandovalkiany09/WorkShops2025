@@ -1,141 +1,156 @@
 const Teacher = require("../models/teacherModel");
 
 /**
- * Crea un Profesor
+ * Creates a teacher
  *
  * @param {*} req
  * @param {*} res
  */
-const teacherPost = (req, res) => {
-  var teacher = new Teacher();
+const teacherPost = async (req, res) => {
+  let teacher = new Teacher();
 
-  teacher.name = req.body.name;
-  teacher.subject = req.body.subject;
+  teacher.first_name = req.body.first_name;
+  teacher.last_name  = req.body.last_name;
+  teacher.cedula = req.body.cedula;
+  teacher.age = req.body.age;
 
-  if (teacher.name && teacher.subject) {
-    teacher.save(function (err) {
-      if (err) {
-        res.status(422);
-        console.log('Error al guardar el profesor', err);
-        res.json({
-          error: 'Hubo un error al guardar el profesor'
+  if (teacher.first_name && teacher.last_name) {
+    await teacher.save()
+      .then(data => {
+        res.status(201); // CREATED
+        res.header({
+          'location': `/api/teachers/?id=${data.id}`
         });
-      }
-      res.status(201); //CREADO
-      res.header({
-        'location': `http://localhost:3000/api/teachers/?id=${teacher.id}`
+        res.json(data);
+      })
+      .catch( err => {
+        res.status(422);
+        console.log('error while saving the teacher', err);
+        res.json({
+          error_code: 1233,
+          error: 'There was an error saving the teacher'
+        });
       });
-      res.json(teacher);
-    });
   } else {
     res.status(422);
-    console.log('Error al guardar el profesor');
+    console.log('error while saving the teacher')
     res.json({
-      error: 'No se proporcionaron datos válidos para el profesor'
+      error: 'No valid data provided for teacher'
     });
   }
 };
 
 /**
- * Obtiene todos los profesores o uno específico
+ * Get all teachers
  *
  * @param {*} req
  * @param {*} res
  */
 const teacherGet = (req, res) => {
-  // Si se requiere un profesor específico
+  // if an specific teacher is required
   if (req.query && req.query.id) {
-    Teacher.findById(req.query.id, function (err, teacher) {
-      if (err) {
+    Teacher.findById(req.query.id)
+      .then( (teacher) => {
+        res.json(teacher);
+      })
+      .catch(err => {
         res.status(404);
-        console.log('Error al consultar el profesor', err);
-        res.json({ error: "El profesor no existe" });
-      }
-      res.json(teacher);
-    });
+        console.log('error while queryting the teacher', err)
+        res.json({ error: "Teacher doesnt exist" })
+      });
   } else {
-    // Obtener todos los profesores
-    Teacher.find(function (err, teachers) {
-      if (err) {
+    // get all teachers
+    Teacher.find()
+      .then( teachers => {
+        res.json(teachers);
+      })
+      .catch(err => {
         res.status(422);
         res.json({ "error": err });
-      }
-      res.json(teachers);
-    });
+      });
   }
 };
 
 /**
- * Elimina un profesor
- *
- * @param {*} req
- * @param {*} res
- */
-const teacherDelete = (req, res) => {
-  // Si se requiere un profesor específico
-  if (req.query && req.query.id) {
-    Teacher.findById(req.query.id, function (err, teacher) {
-      if (err) {
-        res.status(500);
-        console.log('Error al consultar el profesor', err);
-        res.json({ error: "El profesor no existe" });
-      }
-      // Si el profesor existe
-      if (teacher) {
-        teacher.remove(function (err) {
-          if (err) {
-            res.status(500).json({ message: "Hubo un error al eliminar el profesor" });
-          }
-          res.status(204).json({});
-        });
-      } else {
-        res.status(404);
-        console.log('Error al consultar el profesor', err);
-        res.json({ error: "El profesor no existe" });
-      }
-    });
-  } else {
-    res.status(404).json({ error: "Debes proporcionar el ID del profesor" });
-  }
-};
-
-/**
- * Actualiza un profesor
+ * Updates a teacher
  *
  * @param {*} req
  * @param {*} res
  */
 const teacherPatch = (req, res) => {
-  // Obtener el profesor por su id
+  // get teacher by id
   if (req.query && req.query.id) {
     Teacher.findById(req.query.id, function (err, teacher) {
       if (err) {
         res.status(404);
-        console.log('Error al consultar el profesor', err);
-        res.json({ error: "El profesor no existe" });
+        console.log('error while querying the teacher', err)
+        res.json({ error: "Teacher doesn't exist" })
       }
 
-      // Actualizar el objeto profesor (patch)
-      teacher.name = req.body.name ? req.body.name : teacher.name;
-      teacher.subject = req.body.subject ? req.body.subject : teacher.subject;
+      // Actualiza todos los campos disponibles en el cuerpo de la solicitud
+      teacher.first_name = req.body.first_name || teacher.first_name;
+      teacher.last_name = req.body.last_name || teacher.last_name;
+      teacher.cedula = req.body.cedula || teacher.cedula;
+      teacher.age = req.body.age || teacher.age;
 
       teacher.save(function (err) {
         if (err) {
           res.status(422);
-          console.log('Error al guardar el profesor', err);
+          console.log('error while saving the teacher', err)
           res.json({
-            error: 'Hubo un error al guardar el profesor'
+            error: 'There was an error saving the teacher'
           });
         }
         res.status(200); // OK
-        res.json(teacher);
+        res.json(teacher); // Responder con los datos del maestro actualizado
       });
     });
   } else {
     res.status(404);
-    res.json({ error: "El profesor no existe" });
+    res.json({ error: "Teacher doesn't exist" });
   }
 };
+
+/**
+ * Deletes a teacher
+ *
+ * @param {*} req
+ * @param {*} res
+ */
+ const teacherDelete = (req, res) => {
+  // get teacher by id
+  if (req.query && req.query.id) {
+    Teacher.findById(req.query.id, function (err, teacher) {
+      if (err) {
+        res.status(404);
+        console.log('error while queryting the teacher', err)
+        res.json({ error: "Teacher doesnt exist" })
+      }
+
+      teacher.deleteOne(function (err) {
+        if (err) {
+          res.status(422);
+          console.log('error while deleting the teacher', err)
+          res.json({
+            error: 'There was an error deleting the teacher'
+          });
+        }
+        res.status(204); //No content
+        res.json({});
+      });
+    });
+  } else {
+    res.status(404);
+    res.json({ error: "Teacher doesnt exist" })
+  }
+};
+
+module.exports = {
+  teacherGet,
+  teacherPost,
+  teacherPatch,
+  teacherDelete
+}
 
 module.exports = {
   teacherGet,
