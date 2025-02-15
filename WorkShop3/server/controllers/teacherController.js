@@ -19,7 +19,7 @@ const teacherPost = async (req, res) => {
       .then(data => {
         res.status(201); // CREATED
         res.header({
-          'location': `/api/teachers/?id=${data.id}`
+          'location': `/teachers/?id=${data.id}`
         });
         res.json(data);
       })

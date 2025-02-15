@@ -11,6 +11,13 @@ const {
   teacherDelete
 } = require("./controllers/teacherController");
 
+const {
+  courseGet,
+  coursePost,
+  coursePatch,
+  courseDelete
+} = require("./controllers/courseController");
+
 // parser for the request body (required for the POST and PUT methods)
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
@@ -30,7 +37,9 @@ app.put("/teachers", teacherPatch);
 app.delete("/teachers", teacherDelete);
 
 //Course
-// app.get("/api/courses", courseGet);
-// app.post("/api/courses", coursePost);
+app.get("/course", courseGet);
+app.post("/course", coursePost);
+app.patch("/course", coursePatch); 
+app.delete("/course", courseDelete);
 
 app.listen(3000, () => console.log(`Example app listening on port 3000!`))
